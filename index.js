@@ -10,6 +10,7 @@ var app = express();
 
 var port = process.env.PORT || 8080;
 
+var authToken = '64698691-4774-42f7-98d4-d9762a2e3312';
 var demoUser = 'demo@demo.com';
 var demoPass = 'demo';
 
@@ -60,16 +61,19 @@ var schema = {
 };
 
 router.use(function (req, res, next) {
-
   if (req.url != '/login') {
-    console.log('====================================');
-    console.log(req.headers);
-    console.log('====================================');
-    console.log(req.url);
-    console.log('====================================');
+    if (req.headers.authorization !== undefined) {
+      let token = req.headers.authorization.split(' ')[1];
+      if (token === authToken) {
+        next();
+        return;
+      }
+    }
+  } else {
+    next();
+    return;
   }
-
-  next();
+  res.status(401).json({ message: 'Unauthorized'});
 });
 
 router.get('/', function (req, res) {
@@ -82,7 +86,7 @@ router.post('/login', function (req, res) {
   if (user == demoUser && pass == demoPass) {
     res.json({
       success: true,
-      token: '64698691-4774-42f7-98d4-d9762a2e3312',
+      token: authToken,
       data: {
         name: 'Demo User'
       }
